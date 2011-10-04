@@ -1,0 +1,42 @@
+name:           RNAdraw
+version:        0.1.0.0
+author:         Christian Hoener zu Siederdissen
+maintainer:     choener@tbi.univie.ac.at
+homepage:       http://www.tbi.univie.ac.at/~choener/
+copyright:      Christian Hoener zu Siederdissen, 2011
+category:       Bioinformatics
+synopsis:       Draw RNA secondary structures
+license:        GPL-3
+license-file:   LICENSE
+build-type:     Simple
+stability:      experimental
+cabal-version:  >= 1.4.0
+description:
+                We provide a number of ways to draw RNA secondary structures.
+                In particular, the following types of structures can be (more
+                or less elegantly) drawn:
+                .
+                * canonical RNA secondary structures without pseudoknots
+                .
+                * non-canonical extended RNA secondary structures
+                .
+                * pseudoknotted secondary structures
+                .
+                From top to bottom, the beauty of presentation degrades. Some
+                emphasis is put on ASCII-drawings, especially Vienna
+                dot-bracket-like notation.
+
+extra-source-files:
+
+library
+  build-depends:
+    base >3 && <5,
+    bytestring,
+    BiobaseXNA
+
+  exposed-modules:
+    BioInf.Secondary.Draw.DotBracket
+
+  ghc-options:
+    -O2
+
