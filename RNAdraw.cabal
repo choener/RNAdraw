@@ -49,6 +49,6 @@ executable RNAdraw
     diagrams-core,
     diagrams-lib
   main-is:
-    Test.hs
+    RNAdraw.hs
   ghc-options:
     -O
