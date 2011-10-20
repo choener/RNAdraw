@@ -41,3 +41,14 @@ library
   ghc-options:
     -O2
 
+executable Test
+  build-depends:
+    containers,
+    diagrams,
+    diagrams-cairo,
+    diagrams-core,
+    diagrams-lib
+  main-is:
+    Test.hs
+  ghc-options:
+    -O
