@@ -41,7 +41,7 @@ library
   ghc-options:
     -O2
 
-executable Test
+executable RNAdraw
   build-depends:
     containers,
     diagrams,
