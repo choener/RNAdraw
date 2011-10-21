@@ -25,16 +25,19 @@ type SSTree pairtype payload = Tree (Loop pairtype payload)
 
 data Loop pairtype payload
   = Loop
-    {
+    { loops :: [Loop pairtype payload]
+    , closing :: pairtype
     }
   | External
-    {
+    { loops :: [Loop pairtype payload]
     }
 
 -- | Create a secondary structure tree.
 
 mkSSTree :: () -> SSTree () ()
 mkSSTree = undefined
+
+
 
 -- ** testing area
 
