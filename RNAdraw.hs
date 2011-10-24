@@ -16,57 +16,51 @@ import Diagrams.Backend.Cairo.CmdLine
 import Data.Tree
 
 import Biobase.Primary
+import Biobase.Secondary
+import qualified Biobase.Secondary.Diagrams as D
 
 
 
--- ** Secondary structure trees
+-- draw test, these functions should produce all possible drawings, one after
+-- another. a filter can then be used to keep the first viable one.
 --
--- TODO this needs to go into BiobaseXNA later on
+-- in a twist, we can "take 1000" or so, and if we get no result, we reduce the
+-- allowed angles where there are overlaps.
 
--- | Pseudoknot-free secondary structure tree. We are using the GHC rose-tree
--- (Data.Tree) as underlying data structure.
+drawTest (D.SSTree ij@(i,j) a []) = regPoly (j-i+1) 1 # withBounds (square 1 :: Diagram Cairo R2) -- showOrigin
 
-type SSTree pairtype payload = Tree (Loop pairtype payload)
+drawTest (D.SSTree ij@(i,j) a [x@(D.SSTree (k,l) _ _)])
+  -- missing: IL
+  -- bulge right
+  | j-l > 1 = append (-1,0) (regPoly 4 1 # lc blue # showOrigin) (drawTest x # rotateBy ( 1/4))
+  -- bulge left
+  | k-i > 1 = append (1 ,0) (regPoly 4 1 # lc blue # showOrigin) (drawTest x # rotateBy (-1/4))
+  -- normal stem
+  | k-i==1 && j-l==1 = append (0,1) (regPoly 4 1 # showOrigin) (drawTest x)
+  | otherwise = error $ show (i,j,k,l)
 
--- | Pseudoknot-free secondary structure tree are based on loops. Each loop
--- contains 0 or more basepairs. We have 0 pairs only for the completely
--- unpaired sequence. 1 pair is a hairpin, 2 pairs for stems, and bulges. 3 or
--- more pairs are multibranched loops (or the external loop). The external
--- loop, however, has no closing pair.
+drawTest (D.SSTree ij@(i,j) a xs)
+  -- a simple Y-shaped ML
+  | length xs == 2 = append (1,0) (append (-1,0) (regPoly 4 1 # lc red # showOrigin) (drawTest (xs!!0) # rotateBy (1/4))) (drawTest (xs!!1) # rotateBy (-1/4))
+  -- 4-way junction
+  -- anything bigger leads to regular n-things (should work for 4-way junction, too)
 
-data Loop pairtype payload
-  = Loop
-    { loops :: [Loop pairtype payload]
-    , closing :: pairtype
-    , stretches :: [Primary]
-    }
-  | External
-    { loops :: [Loop pairtype payload]
-    , stretches :: [Primary]
-    }
+drawTest (D.SSExt  l   a [x]) = drawTest x
 
--- | Create a secondary structure tree.
-
-mkSSTree :: () -> SSTree () ()
-mkSSTree = undefined
-
+pair (i,j) = (circle 1 ||| hrule 1 ||| circle 1) # showOrigin
 
 
 -- ** testing area
 
 main = defaultMain $ xyz
 
-xyz = circle 1
+xyz = drawTest big
 
--- | A nucleotide is a circle, with different color based on the nucleotide
--- given
+bulges = D.d1sTree $ D.mkD1S "(((((...(((...)))))).))"
 
-nucleotide c = circle 1 # fc nc where
-  nc = case c of
-        'A' -> white
-        _   -> white
+multil = D.d1sTree $ D.mkD1S "((.((...))..((....)).))"
 
--- | some test data
+big = D.d1sTree $ D.mkD1S "((((..((....)))).(((((...))..))).))"
 
-test = Node "" [Node "CG" [Node "CG" [Node "CG" [x,x]]]] where
-  x = Node "AU" [Node "AU" [Node "AU" []]]
+verybig = D.d1sTree $ D.mkD1S
+  "(.....(((.(((((((((((.....(((.....)))......)))))..((((((((.((((((....))).)))..(((((((((.((((((((((((......(((((..(((((((....))))))).)))))))).)).)))))))))))))))))).))))))................))))))))).......)"
