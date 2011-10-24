@@ -1,10 +1,21 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
+-- |
+--
+-- local TODO list
+--
+-- - build sstree
+-- - have diagrams running
+-- - be able to draw overlapped secondary structures
+-- - implement algorithm for being free of overlaps
+
 module Main where
 
 import Diagrams.Prelude
 import Diagrams.Backend.Cairo.CmdLine
 import Data.Tree
+
+import Biobase.Primary
 
 
 
@@ -27,9 +38,11 @@ data Loop pairtype payload
   = Loop
     { loops :: [Loop pairtype payload]
     , closing :: pairtype
+    , stretches :: [Primary]
     }
   | External
     { loops :: [Loop pairtype payload]
+    , stretches :: [Primary]
     }
 
 -- | Create a secondary structure tree.

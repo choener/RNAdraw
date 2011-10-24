@@ -44,7 +44,7 @@ library
 executable RNAdraw
   build-depends:
     containers,
-    diagrams,
+    diagrams >= 0.4,
     diagrams-cairo,
     diagrams-core,
     diagrams-lib
