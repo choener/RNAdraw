@@ -86,18 +86,40 @@ stem cs = map f cs where
 unpairedLoop :: Int -> Int -> Candidates -> Candidates
 unpairedLoop i j cs
   | i==0 && j==0 = stem cs
-  | otherwise = map stretched cs
+  | otherwise = as ++ map stretched cs
   where
+    -- Before trying the stretched version, we try to draw bulges and interior
+    -- loops at an angle. If the number of relative unpairedness between the
+    -- two strands is two small, we don't allow angles.
+    as = if False then map angled cs else []
+    -- Ok, this smells of unification. Dependent on relative difference, we
+    -- allow for certain kinds of angles...
+    angled (xs,box) = undefined where
+      angledness = fromIntegral (i+1) / fromIntegral (j+1)
+    -- An interior loop that has been "stretched" to look like a normal stem.
+    -- Nucleotides are supposed to be equidistant from each other for each
+    -- individual strand.
     stretched (xs,box) = ([h] ++ unpI ++ nxs ++ unpJ ++ [l], nbox) where
       nxs = map (+(0, mij+1)) xs
       mij = fromIntegral $ max i j
-      unpI = [ (0, undefined) | k<-[1..i] ]
-      unpJ = [ (1, undefined) | k<-[1..j] ]
-      nbox = undefined
+      iScale = mij / fromIntegral i
+      jScale = mij / fromIntegral j
+      unpI = [ (0, fromIntegral k * iScale) | k<-[1..i] ]
+      unpJ = [ (1, fromIntegral k * jScale) | k<-[1..j] ]
+      nbox = softBox $ [translateBox (0,mij+1) box, hardBox [(0,0),(1,mij+1)]]
     h = (0,0)
     l = (1,0)
 
-test = {- unpairedLoop 2 4 . -} stem . hairpin $ 4
+-- | And finally, multibranched loops. Dependent on the number of branches
+-- (remember the additional one going "out"), we select possible angles.
+--
+-- TODO For now, we just subdivide equally and see what happens, later on we
+-- probably have to take some state into account which restricts the total
+-- available angular freedom.
+
+multibranchedLoop :: [Either Regei
+
+test = unpairedLoop 2 4 . stem . hairpin $ 4
 t = mapM_ print test
 
 -- | A candidate structure is a list of coordinates in 5'->3' form and a
