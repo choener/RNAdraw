@@ -8,12 +8,17 @@
 -- - have diagrams running
 -- - be able to draw overlapped secondary structures
 -- - implement algorithm for being free of overlaps
+--
+-- TODO we are repeating a lot of existing code for the sake of easier
+-- transition to C. fix this!
 
 module Main where
 
 import Diagrams.Prelude
 import Diagrams.Backend.Cairo.CmdLine
 import Data.Tree
+import Data.List
+import Data.Ord
 
 import Biobase.Primary
 import Biobase.Secondary
@@ -48,6 +53,48 @@ drawTest (D.SSTree ij@(i,j) a xs)
 drawTest (D.SSExt  l   a [x]) = drawTest x
 
 pair (i,j) = (circle 1 ||| hrule 1 ||| circle 1) # showOrigin
+
+-- | Hard bounding boxes for individual objects, soft bounding boxes for
+-- collections of objects.
+
+data BBox
+  = Hard Points4
+  | Soft Points4 [BBox]
+
+-- | Determine if there is any intersection between two bounding boxes.
+
+intsect :: BBox -> BBox -> Bool
+intsect (Hard x)    (Hard y)    = isect x y
+intsect (Hard x)    (Soft y ys) = isect x y && any (intsect (Hard x)) ys
+intsect (Soft x xs) (Hard y)    = isect x y && any (intsect (Hard y)) xs
+intsect (Soft x xs) (Soft y ys) = isect x y && or [intsect x' y' | x'<-xs, y'<-ys]
+
+-- | Intersection between bounding boxes.
+
+isect xs ys = undefined where
+  -- the two points minX,minY with minimal distance from each other
+  (minX,minY) = minimumBy (comparing (uncurry dist)) [ (x,y) | x<-xs, y<-ys ]
+  -- center point between x and y
+  c = minX + (minY-minX)/2
+  -- normal vector at "c"
+  nC = let (cx,cy) = c; l = vlen c in (cy, negate cx) `scale2d` (1/l)
+
+-- | scale vector by scalar
+
+scale2d (x,y) s = (x*s,y*s)
+
+-- | distance between points
+
+dist :: P2D -> P2D -> Double
+dist (x1,x2) (y1,y2) = sqrt $ (x1-y1)^2 + (x2-y2)^2
+
+-- | length of a vector
+
+vlen (x,y) = sqrt $ x^2+y^2
+
+type Points4 = [P2D]
+
+type P2D = (Double,Double)
 
 
 -- ** testing area
