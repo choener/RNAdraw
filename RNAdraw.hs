@@ -27,6 +27,89 @@ import qualified Biobase.Secondary.Diagrams as D
 
 
 
+-- ** Construction of individual RNA secondary structure features and bounding
+-- boxes. Each individual element lives in its own local vector space.
+-- Combination of elements requires translating and rotating positional
+-- coordinates and bounding box coordinates.
+--
+-- Again, we use what "diagrams" gives us but are verbose (and hopefully clear)
+-- on how to write this in C.
+--
+-- The individual nucleotide position are given in 5' -> 3' order. The first 5'
+-- nucleotide forms the local origin.
+--
+-- TODO For now, all construction functions produce "anonymous" structures that
+-- do not contain any nucleotide annotations. In principle, it should be "easy"
+-- later on, to annotate accordingly -- considering that we return only "R2"
+-- points for the nucleotides and the bounding boxes.
+--
+-- TODO this could (and should) later on be extended to allow for different
+-- kinds of construction algorithms.
+--
+-- TODO weird, if this works out, we will have a 5'->3' chain of nucleotide
+-- positions corresponding /exactly/ to the chain of nucleotides of the input.
+-- Hmm...
+--
+-- TODO whenever we call one of stem, unpairedLoop, etc we need to test the
+-- resulting new thing for intersections...
+
+-- | Create a hairpin.
+--
+-- TODO Should we use polytopes or circles?
+--
+-- TODO right now, we always produce the same thing, for testing only.
+
+hairpin :: Int -> Candidates
+hairpin k = [(xs, Hard xs)] where
+  xs = [ (0,0), (0,1), (1,1), (1,0) ]
+
+-- | A stem extends an existing structure by two nucleotides and produces a new
+-- bounding box.
+--
+-- TODO switch from lists to a data structure that allows prepend/append in the
+-- same amount of time?
+
+stem :: Candidates -> Candidates
+stem cs = map f cs where
+  f (xs,box) = (h : nxs ++ [l], nbox) where
+    nxs = map (+(0,1)) xs
+    nbox = softBox $ [translateBox (0,1) box, hardBox [(1,1),h,l]]
+  h = (0,0)
+  l = (1,0)
+
+-- | Bulges and interior loops. can be in stretched "stem-form" or with one of
+-- several possible angles. The possibilities are sorted by how nice they are,
+-- or whatever... . "i" and "j" are the number of unpaired nucleotides on
+-- either side. And again, we have to discuss if the should be a smooth form or
+-- an angled form on how to draw the unpaired stuff.
+
+unpairedLoop :: Int -> Int -> Candidates -> Candidates
+unpairedLoop i j cs
+  | i==0 && j==0 = stem cs
+  | otherwise = map stretched cs
+  where
+    stretched (xs,box) = ([h] ++ unpI ++ nxs ++ unpJ ++ [l], nbox) where
+      nxs = map (+(0, mij+1)) xs
+      mij = fromIntegral $ max i j
+      unpI = [ (0, undefined) | k<-[1..i] ]
+      unpJ = [ (1, undefined) | k<-[1..j] ]
+      nbox = undefined
+    h = (0,0)
+    l = (1,0)
+
+test = {- unpairedLoop 2 4 . -} stem . hairpin $ 4
+t = mapM_ print test
+
+-- | A candidate structure is a list of coordinates in 5'->3' form and a
+-- bounding box around that all.
+
+type Candidate = ([R2], BBox)
+
+-- | We typically deal with many candidates that then have to be evaluated.
+
+type Candidates = [Candidate]
+
+
 -- ** Bounding boxes.
 
 -- | We have two kinds of bounding boxes. Hard bounding boxes are concrete
@@ -100,7 +183,17 @@ boxIsect (Soft xs sxs) (Soft ys sys)
     is = [ boxIsect sx sy | sx<-sxs, sy<-sys ]
     zero = ((0,0),(0,0))
 
+-- | Translate all coordinates of a bounding box.
 
+translateBox :: R2 -> BBox -> BBox
+translateBox p (Hard xs) = Hard $ map (+p) xs
+translateBox p (Soft xs sxs) = Soft (map (+p) xs) (map (translateBox p) sxs)
+
+-- | Rotate all coordinates of a bounding box.
+
+rotateBox :: Deg -> BBox -> BBox
+rotateBox theta (Hard xs) = Hard $ map (Dia.rotate theta) xs
+rotateBox theta (Soft xs sxs) = Soft (map (Dia.rotate theta) xs) (map (rotateBox theta) sxs)
 
 
 
@@ -150,6 +243,10 @@ seperatingHyperPlane xs ys
 -- | The type of 2-d vectors: (Double,Double)
 
 type R2 = Dia.R2
+
+-- | What kind of rotation are we doing, 0..360 degree kinds.
+
+type Deg = Dia.Deg
 
 
 
