@@ -116,8 +116,32 @@ unpairedLoop i j cs
 -- TODO For now, we just subdivide equally and see what happens, later on we
 -- probably have to take some state into account which restricts the total
 -- available angular freedom.
+--
+-- TODO Simple hairpins may branch off at any point, complex stem structures
+-- may only branch off at certain angles. So basically, in "n" we count the
+-- number of complex things ... ?
 
-multibranchedLoop :: [Either Regei
+multibranchedLoop :: [Region] -> Candidates
+multibranchedLoop rs = undefined where
+  n = 1 + (length . filter isPaired $ rs)
+  l = 2 * n + sum (map len . filter isUnpaired $ rs) -- total number of nucleotides needed on the polytope / circle
+
+-- | Multibranched loops are combined of an ordered list of unpaired regions
+-- and regions closed by a pair. In addition, paired regions are actually each
+-- a list of one or more candidates.
+
+data Region
+  = Unpaired {len :: Int}
+  | Paired {cands :: Candidates}
+  deriving (Show)
+
+isUnpaired :: Region -> Bool
+isUnpaired (Unpaired _) = True
+isUnpaired _ = False
+
+isPaired :: Region -> Bool
+isPaired (Paired _) = True
+isPaired _ = False
 
 test = unpairedLoop 2 4 . stem . hairpin $ 4
 t = mapM_ print test
