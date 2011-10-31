@@ -302,6 +302,7 @@ testX = [ (0,0), (2,0), (0,2), (2,2) ]
 testY = map (+(1,1)) testX
 testZ = map (+(10,10)) testX
 
+main = return ()
 
 
 
