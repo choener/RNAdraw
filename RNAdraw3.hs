@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
@@ -22,117 +20,12 @@ import qualified Diagrams.Backend.Cairo.CmdLine as Dia
 import Data.Tree
 import Data.List
 import Data.Ord
-import Control.Applicative
-import Data.Function (on)
 
 import Biobase.Primary
 import Biobase.Secondary
 import qualified Biobase.Secondary.Diagrams as D
 
 
-
--- ** Skeleton-based approach.
---
--- Can each Candidate be given a score of "goodness" and each function
--- interleaves candidates so that the candidate with best score is up front?
-
--- |
-
-sHairpin :: CircleA -> Dir -> Candidates
-sHairpin ca d = pure $ (xs, hardBox xs) where xs = [(0,0),(0,1)]
-
--- |
-
-sStem :: CircleA -> Dir -> Candidates -> Candidates
-sStem ca d cs = map f cs where
-  f (xs,box) = (h:nxs, nbox) where
-    nxs = map (+(0,1)) xs
-    h = (0,0)
-    nbox = softBox $ [translateBox (0,1) box, hardBox [(0,1), h]]
-
--- |
-
-sUnpLoop :: CircleA -> Dir -> Int -> Int -> Candidates -> Candidates
-sUnpLoop ca d i j cs
-  | i==0 && j==0 = sStem ca d cs
-  | otherwise = sStem ca d cs -- TODO
-
--- |
-
-sMultibranched :: CircleA -> Dir -> [Region] -> Candidates
-sMultibranched ca d rs = map go $ omega ps where
-  ps = filter isPaired rs
-  n = 1 + length ps
-  omega [] = [[]]
-  omega (Paired p:ps) = do
-    x <- p
-    xs <- omega ps
-    return $ x:xs
-  go _ = undefined
-
-type CircleA = [(Deg,Deg)] -- most likely (0,360) to start with
-
-type Dir = Deg -- current direction of this branch
-
--- |
---
--- TODO we should switch to a better system...
-
-leftNext :: CircleA -> Dir -> [Dir]
-leftNext ca d = filter (circleA ca) ds where
-  ds = map (\(x,y) ->
-              let p = x * (fromIntegral . round $ d/x)
-              in  p-y
-            ) dirList
-
-rightNext = undefined
-
-centerNext = undefined
-
--- | Approved direction if either no circle-approved has been set *[]* or its
--- approved.
-
-circleA :: CircleA -> Dir -> Bool
-circleA [] _ = True
-circleA cs d = go cs where
-  go [] = False
-  go ((f,t):cs) = f<=d && d<=t || go cs
-
--- | we have 360 different possibilities on which direction to use next, sorted
--- by how much we like them.
-
-dirList :: [(Dir,Dir)]
-dirList = nubBy ((==) `on` snd) $ go 90 where
-  go k | k >= 1 = (map (k,) . takeWhile (<360) $ iterate (+k) 0) ++ go (next k)
-  go _ = []
-  next k
-    | k == 1 = 0
-    | Just p <- elemIndex k ns = head $ drop (p+1) ns
-    | otherwise = 1
-  ns = [90,45,30,15,10,5,1]
-{-# NOINLINE dirList #-}
-
-mkTree :: String -> Candidates
-mkTree = go . D.d1sTree . D.mkD1S where
-  go (D.SSExt k _ []) = error "draw unpaired region"
-  -- single stem in external region
-  go (D.SSExt k _ [x]) = do
-    s <- stems [] 0 x
-    return s
-  -- this would be a hairpin
-  stems ca d (D.SSTree (i,j) _ []) = do
-    let x = [(0,0),(0,1.1)]
-    return (x, hardBox x)
-  -- extend a stem
-  stems ca d (D.SSTree (i,j) _ [x@(D.SSTree (k,l) _ _)])
-    | i+1==k && j-1==l = do
-      let h = [(0,0)]
-      t <- stems ca d x
-      return ( h ++ (map (+(0,1)) $ fst t)
-             , softBox $ [hardBox $ (0,1):h, translateBox (0,1) $ snd t]
-             )
-
-t = mapM_ print $ mkTree "((.))"
 
 -- ** Construction of individual RNA secondary structure features and bounding
 -- boxes. Each individual element lives in its own local vector space.
@@ -250,10 +143,8 @@ isPaired :: Region -> Bool
 isPaired (Paired _) = True
 isPaired _ = False
 
-{-
 test = unpairedLoop 2 4 . stem . hairpin $ 4
 t = mapM_ print test
--}
 
 -- | A candidate structure is a list of coordinates in 5'->3' form and a
 -- bounding box around that all.
