@@ -49,6 +49,6 @@ executable RNAdraw
     diagrams-core,
     diagrams-lib
   main-is:
-    RNAdraw.hs
+    RNAdraw3.hs
   ghc-options:
     -O

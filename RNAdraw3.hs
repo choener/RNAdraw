@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
@@ -20,6 +21,8 @@ import qualified Diagrams.Backend.Cairo.CmdLine as Dia
 import Data.Tree
 import Data.List
 import Data.Ord
+import Control.Monad
+import Data.Maybe
 
 import Biobase.Primary
 import Biobase.Secondary
@@ -143,8 +146,98 @@ isPaired :: Region -> Bool
 isPaired (Paired _) = True
 isPaired _ = False
 
+
+
+
+
+mkTree :: String -> Candidates
+mkTree = goExt . D.d1sTree . D.mkD1S where
+  goExt (D.SSExt k _ []) = error "draw unpaired region"
+  -- single stem in external region
+  goExt (D.SSExt k _ [x]) = do
+    s <- goStem x
+    return s
+
+goStem (D.SSTree (i,j) _ []) = [(x, hardBox x)] where
+  x = [(0,0), (0,1.1)]
+
+goStem (D.SSTree (i,j) _ [x@(D.SSTree (k,l) _ _)])
+  -- left bulge
+  | i+1<k && j-1==l = do
+    let h = [(0,0)]
+    let hbox = hardBox h
+    (t',tbox') <- goStem x
+    theta <- [-90, -45, 0 :: Deg]
+    let t = map (+(0,1)) . map (Dia.rotate theta) $ t'
+    let tbox = translateBox (0,1) . rotateBox theta $ tbox'
+    guard . isJust $ boxIsect hbox tbox
+    return (h++t, softBox [hbox, tbox])
+  -- right bulge
+  -- TODO UNIFY!!!
+  | i+1==k && j-1>l = do
+    let h = [(0,0)]
+    let hbox = hardBox h
+    (t',tbox') <- goStem x
+    theta <- [90, 45, 0 :: Deg]
+    let t = map (+(0,1)) . map (Dia.rotate theta) $ t'
+    let tbox = translateBox (0,1) . rotateBox theta $ tbox'
+    guard . isJust $ boxIsect hbox tbox
+    return (h++t, softBox [hbox, tbox])
+  -- simple stem or interior loop
+  -- | i+1==k && j-1==l = do
+  | otherwise = do
+    let h = [(0,0)]
+    let hbox = hardBox h
+    (t',tbox') <- goStem x
+    let t = map (+(0,1)) t'
+    let tbox = translateBox (0,1) tbox'
+    guard . isJust $ boxIsect hbox tbox
+    return (h++t, softBox [hbox, tbox])
+
+goStem (D.SSTree (i,j) _ xs) = do
+  let h = [(0,0)]
+  let hbox = hardBox h
+  let split = 360 / (fromIntegral $ length xs + 1)
+  let thetas = map Dia.Deg . take (length xs) $ iterate (+split) split
+  ys' <- allWays $ map goStem xs
+  let ys = zipWith (\theta y -> translateBoth (0,1)
+                              . rotateBoth theta
+                              . translateBoth (0,1)
+                              $ y
+                ) thetas ys'
+  return ( h ++ concatMap fst ys
+         , softBox $ hbox : map snd ys
+         )
+
+translateBoth k (xs, box) = ( map (+k) xs
+                            , translateBox k box
+                            )
+
+rotateBoth theta (xs, box) = ( map (Dia.rotate theta) xs
+                             , rotateBox theta box
+                             )
+
+allWays [] = [[]]
+allWays (x:xs) = do
+  y <- x
+  ys <- allWays xs
+  return $ y:ys
+
+t1 =  "((.((.))).)"
+t2 = "(()())"
+
+t = mapM_ (\t -> print t >> print "") $ mkTree t2
+
+main = do
+  xs <- (map mkTree . lines) `fmap` getContents
+  mapM_ (\x -> (print $ take 1 x) >> putStrLn "") xs
+  print $ map length xs
+
+
+{-
 test = unpairedLoop 2 4 . stem . hairpin $ 4
 t = mapM_ print test
+-}
 
 -- | A candidate structure is a list of coordinates in 5'->3' form and a
 -- bounding box around that all.
@@ -302,7 +395,7 @@ testX = [ (0,0), (2,0), (0,2), (2,2) ]
 testY = map (+(1,1)) testX
 testZ = map (+(10,10)) testX
 
-main = return ()
+-- main = return ()
 
 
 
