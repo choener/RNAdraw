@@ -41,14 +41,16 @@ library
   ghc-options:
     -O2
 
-executable RNAdraw
-  build-depends:
-    containers,
-    diagrams >= 0.4,
-    diagrams-cairo,
-    diagrams-core,
-    diagrams-lib
-  main-is:
-    RNAdraw3.hs
-  ghc-options:
-    -O
+-- disabled experimental parts
+
+-- executable RNAdraw
+--   build-depends:
+--     containers,
+--     diagrams >= 0.4,
+--     diagrams-cairo,
+--     diagrams-core,
+--     diagrams-lib
+--   main-is:
+--     RNAdraw3.hs
+--   ghc-options:
+--     -O
