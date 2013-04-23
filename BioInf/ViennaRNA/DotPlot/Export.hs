@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -5,15 +7,27 @@
 module BioInf.ViennaRNA.DotPlot.Export where
 
 import Data.Text (Text)
+import qualified Data.Array.IArray as A
 import qualified Data.Text as T
+import Text.Printf
 import Text.QuasiText
+import Data.List (sortBy)
+import Data.Ord
+import Data.Function
 
 import BioInf.ViennaRNA.DotPlot
 
 
 
 dotPlotToText :: DotPlot -> Text
-dotPlotToText = error "write me" where
+dotPlotToText DotPlot{..} = qqDotPlot rnaSequence cs where
+  cs = [ T.pack (conv i j p mc) | ((i,j),Just (p,mc)) <- (sortBy (comparing snd) $ A.assocs dotplot) ]
+  conv i j p mc
+    | i<j                     = printf "%5d %5d %10.8f ubox" i j p
+    | i>j, Nothing      <- mc = printf "%5d %5d %10.8f lbox" j i z
+    | i>j, Just (r,g,b) <- mc = printf "%5d %5d %10.8f %f %f %f cbox" j i z r g b
+    where z = 0.95 :: Double
+
 
 
 -- * QQ stuff
@@ -63,6 +77,7 @@ DPdict begin
    setrgbcolor
    3 1 roll
    len exch sub 1 add box
+   0 0 0 setrgbcolor
 } bind def
 
 /drawseq {
