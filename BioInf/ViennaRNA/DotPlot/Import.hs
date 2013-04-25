@@ -28,6 +28,7 @@ textToDotPlot t = DotPlot (A.accumArray (const id) Nothing ((1,1),(l,l)) (map f 
   f p'
     | last p == "cbox" = ( (rdI $ p!!1, rdI $ p!!0), (Just (rdP $ p!!2, Just (rdP $ p!!3, rdP $ p!!4, rdP $ p!!5))) )
     | last p == "ubox" = ( (rdI $ p!!0, rdI $ p!!1), (Just (rdP $ p!!2, Nothing)) )
+    | last p == "lbox" = ( (rdI $ p!!1, rdI $ p!!0), (Just (rdP $ p!!2, Nothing)) )
     where p = T.words p'
           rdI :: Text -> Int
           rdI = chk . R.decimal
