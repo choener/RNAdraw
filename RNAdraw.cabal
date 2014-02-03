@@ -1,9 +1,9 @@
 name:           RNAdraw
-version:        0.2.0.0
+version:        0.2.0.1
 author:         Christian Hoener zu Siederdissen
 maintainer:     choener@tbi.univie.ac.at
 homepage:       http://www.tbi.univie.ac.at/~choener/
-copyright:      Christian Hoener zu Siederdissen, 2011-2013
+copyright:      Christian Hoener zu Siederdissen, 2011-2014
 category:       Bioinformatics
 synopsis:       Draw RNA secondary structures
 license:        GPL-3
@@ -29,6 +29,7 @@ description:
                 dot-bracket-like notation.
 
 extra-source-files:
+  changelog
 
 library
   build-depends:
@@ -41,8 +42,8 @@ library
     text                        ,
     vector          >= 0.10     ,
     QuasiText       >= 0.1.2.5  ,
-    PrimitiveArray  >= 0.5      ,
-    BiobaseXNA      >= 0.7
+    PrimitiveArray  >= 0.5.3    ,
+    BiobaseXNA      >= 0.8.1
 
   exposed-modules:
     BioInf.Secondary.Draw.DotBracket
