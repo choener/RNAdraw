@@ -3,17 +3,28 @@
 
 module Main where
 
-import System.Console.CmdArgs
+import           Data.Function
+import           Data.List (nubBy,sort)
+import           Data.List.Split (splitOn)
 import qualified Data.Text.IO as T
-import Data.List (nubBy,sort)
-import Data.Function
-import Data.List.Split (splitOn)
+import           System.Console.CmdArgs
 
-import BioInf.ViennaRNA.DotPlot
-import BioInf.ViennaRNA.DotPlot.Export
-import BioInf.ViennaRNA.DotPlot.Import
+import           BioInf.ViennaRNA.DotPlot
+import           BioInf.ViennaRNA.DotPlot.Export
+import           BioInf.ViennaRNA.DotPlot.Import
 
 
+
+-- | The RNAdotplot tool has three modes:
+--
+-- - 
+--
+-- - 'Overlay' plot: sort each cell so that the highest probability is drawn
+-- first, overlaid by lower probabilities.
+--
+-- - 'Difference' plot: indicate with the respective color, where each of two
+-- probabilities is higher. Areas with the same probability lead to an empty
+-- cell.
 
 data Options = Options
   { infile       :: String
