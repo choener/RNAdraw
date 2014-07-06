@@ -13,7 +13,7 @@ import BioInf.ViennaRNA.DotPlot
 
 
 textToDotPlot :: Text -> DotPlot
-textToDotPlot t = DotPlot (A.accumArray (const id) Nothing ((1,1),(l,l)) (map f ps)) True sq where
+textToDotPlot t = DotPlot (A.accumArray (const id) [] ((1,1),(l,l)) (map f ps)) True sq where
   l  = T.length sq
   ls = T.lines t
   sq = case (drop 1 . dropWhile (not . T.isPrefixOf "/sequence") $ ls) of
@@ -26,9 +26,9 @@ textToDotPlot t = DotPlot (A.accumArray (const id) Nothing ((1,1),(l,l)) (map f 
      . dropWhile (not . T.isPrefixOf "%start of base pair probability data")
      $ ls
   f p'
-    | last p == "cbox" = ( (rdI $ p!!1, rdI $ p!!0), (Just (rdP $ p!!2, Just (rdP $ p!!3, rdP $ p!!4, rdP $ p!!5))) )
-    | last p == "ubox" = ( (rdI $ p!!0, rdI $ p!!1), (Just (rdP $ p!!2, Nothing)) )
-    | last p == "lbox" = ( (rdI $ p!!1, rdI $ p!!0), (Just (rdP $ p!!2, Nothing)) )
+    | last p == "cbox" = ( (rdI $ p!!1, rdI $ p!!0), [ (rdP $ p!!2, Just (rdP $ p!!3, rdP $ p!!4, rdP $ p!!5)) ] )
+    | last p == "ubox" = ( (rdI $ p!!0, rdI $ p!!1), [ (rdP $ p!!2, Nothing) ] )
+    | last p == "lbox" = ( (rdI $ p!!1, rdI $ p!!0), [ (rdP $ p!!2, Nothing) ] )
     where p = T.words p'
           rdI :: Text -> Int
           rdI = chk . R.decimal

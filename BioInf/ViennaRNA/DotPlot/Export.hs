@@ -21,11 +21,12 @@ import BioInf.ViennaRNA.DotPlot
 
 dotPlotToText :: DotPlot -> Text
 dotPlotToText DotPlot{..} = qqDotPlot rnaSequence cs where
-  cs = [ T.pack (conv i j p mc) | ((i,j),Just (p,mc)) <- (sortBy (comparing snd) $ A.assocs dotplot) ]
+  cs = [ T.pack (conv i j p mc) | ((i,j),pmc) <- (sortBy (comparing snd) $ A.assocs dotplot), (p,mc) <- sortBy (comparing (Down . fst)) pmc ] -- higher prob first!
   conv i j p mc
+    | Just (r,g,b)      <- mc = printf "%5d %5d %10.8f %f %f %f cbox" j i (if i>j then z else p) r g b
     | i<j                     = printf "%5d %5d %10.8f ubox" i j p
     | i>j, Nothing      <- mc = printf "%5d %5d %10.8f lbox" j i z
-    | i>j, Just (r,g,b) <- mc = printf "%5d %5d %10.8f %f %f %f cbox" j i z r g b
+--    | i>j, Just (r,g,b) <- mc = printf "%5d %5d %10.8f %f %f %f cbox" j i z r g b
     where z = 0.95 :: Double
 
 
