@@ -1,14 +1,12 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module BioInf.ViennaRNA.DotPlot.Import where
 
-import Data.Text (Text(..))
+import           Data.Text (Text(..))
 import qualified Data.Array.IArray as A
 import qualified Data.Text as T
 import qualified Data.Text.Read as R
 
-import BioInf.ViennaRNA.DotPlot
+import           BioInf.ViennaRNA.DotPlot
 
 
 

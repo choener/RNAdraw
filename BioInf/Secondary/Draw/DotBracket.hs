@@ -1,6 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TupleSections #-}
 
 -- | Several methods to draw ascii dot-bracket figures onto the screen. The
 -- result will be one sequence line, a dot-bracket string, and possibly a list
@@ -8,13 +5,13 @@
 
 module BioInf.Secondary.Draw.DotBracket where
 
-import Data.ByteString.Char8 (ByteString)
+import           Data.ByteString.Char8 (ByteString)
+import           Prelude hiding (sequence)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Vector.Unboxed as V
-import Text.Printf
-import Prelude hiding (sequence)
+import           Text.Printf
 
-import Biobase.Secondary
+import           Biobase.Secondary
 
 
 
@@ -27,8 +24,8 @@ class DotBracketDraw a where
   -- | As 'draw' but returns the different strings as parts. These can then be
   -- further altered by the receiving end.
   drawParts :: PairAnno -> SequenceNumbering -> a -> Parts
-  -- | Draw a pseudoknotted secondary structures.
-  drawPK :: PairAnno -> SequenceNumbering -> a -> String
+  -- -- Draw a pseudoknotted secondary structures.
+  -- drawPK :: PairAnno -> SequenceNumbering -> a -> String
 
 data Parts = Parts
   { numbers :: Maybe String
@@ -52,7 +49,7 @@ instance DotBracketDraw (String,[ExtPairIdx]) where
     , sequence = seq
     , structure = V.toList $ V.accum updateStructure (V.fromList $ replicate l '.') (map ((,'(').baseL) xs ++ map ((,')').baseR) xs)
     , extended = [ printf "  %4d %4d   %c-%c   %s" (baseL x) (baseR x) (seq!!baseL x) (seq!!baseR x) (show $ baseT x)
-                 | x <- xs, pa == Always || pa == Required && baseT x /= cWW
+                 | x <- xs, pa == Always || pa == Required && baseT x /= CWW
                  ]
     } where
       l = length seq
@@ -60,8 +57,9 @@ instance DotBracketDraw (String,[ExtPairIdx]) where
         | cur == '.' = new
         | cur == new && cur == '(' = '<'
         | cur == new && cur == ')' = '>'
-        | cur `elem` "()" && new `elem` "()" = 'X'
+        | cur `elem` bs && new `elem` bs = 'X'
         | otherwise = '3' -- three outgoing edges...
+        where bs = "()" :: String
 
 instance DotBracketDraw (String,[PairIdx]) where
   draw pa sn (seq,xs) = draw pa sn (seq,map (\x -> ((baseL x, baseR x), baseT x)) xs)

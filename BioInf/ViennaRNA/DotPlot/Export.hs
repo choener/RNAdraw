@@ -1,21 +1,16 @@
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module BioInf.ViennaRNA.DotPlot.Export where
 
-import Data.Text (Text)
+import           Data.Function
+import           Data.List (sortBy)
+import           Data.Ord
+import           Data.Text (Text)
 import qualified Data.Array.IArray as A
 import qualified Data.Text as T
-import Text.Printf
-import Text.QuasiText
-import Data.List (sortBy)
-import Data.Ord
-import Data.Function
+import           Text.Printf
+import           Text.QuasiText
 
-import BioInf.ViennaRNA.DotPlot
+import           BioInf.ViennaRNA.DotPlot
 
 
 

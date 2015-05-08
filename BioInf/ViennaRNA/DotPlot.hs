@@ -1,22 +1,17 @@
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeOperators #-}
 
 -- | Handles ViennaRNA dot-plots.
 
 module BioInf.ViennaRNA.DotPlot where
 
+import           Control.Arrow
+import           Data.List
 import qualified Data.Array.IArray as A
+import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Vector.Unboxed as VU
-import qualified Data.Map as M
-import Data.List
-import Control.Arrow
 
-import Biobase.Secondary
-import Biobase.Secondary.Diagrams
+import           Biobase.Secondary
+import           Biobase.Secondary.Diagrams
 
 
 
